@@ -3,15 +3,15 @@
     //Use this attribute for the class that u want to save its properties
     public sealed class VersionClassAttribute : Attribute
     {
-        public ushort Version { get; set; }
+        public ushort Version { get; private set; }
 
-        public VersionClassAttribute(ushort version)
+        public VersionClassAttribute()
         {
-            Version = version;
+            Version = VersionManager.VersionNumber;
         }
     }
 
-    public enum VersionTypeEnums : byte
+    public enum VersionTypeEnum : byte
     {
         BYTE,
         SBYTE,
@@ -34,9 +34,9 @@
     //Add this to the property which u want to save its data other wise it wont be saved by code.
     public sealed class VersionPropertyAttribute : Attribute
     {
-        public VersionTypeEnums TypeEnum { get; set; }
+        public VersionTypeEnum TypeEnum { get; set; }
 
-        public VersionPropertyAttribute(VersionTypeEnums typeEnum)
+        public VersionPropertyAttribute(VersionTypeEnum typeEnum)
         {
             TypeEnum = typeEnum;
         }
