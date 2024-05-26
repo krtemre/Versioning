@@ -4,12 +4,13 @@ namespace VersioningUsageTest.Classes
 {
     public class TestClassB
     {
-        [VersionProperty(VersionTypeEnum.BOOL)]
+        [VersionProperty(VersionValueTypeEnum.BOOL)]
         public bool VersionBoolData { get; set; }
 
-        [VersionProperty(VersionTypeEnum.BYTE)]
+        [VersionProperty(VersionValueTypeEnum.BYTE)]
         public byte VersionByteData { get; set; }
 
+        [VersionProperty(VersionValueTypeEnum.INT)]
         public int[] VersionIntArrData { get; set; }
     }
 }

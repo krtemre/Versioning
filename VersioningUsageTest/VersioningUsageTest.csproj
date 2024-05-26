@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="SaveLoad\" />
     <Folder Include="UI\" />
   </ItemGroup>
 

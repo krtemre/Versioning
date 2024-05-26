@@ -98,7 +98,7 @@ namespace Versioning
                     versionInformationData.Properties.Add(GetPropertyVersionData(prop, attribute.TypeEnum));
 
                     //Control if attribute type is object if it is then update added classes
-                    if (attribute.TypeEnum == VersionTypeEnum.OBJECT)
+                    if (attribute.TypeEnum == VersionValueTypeEnum.OBJECT)
                     {
                         Type objClassType = prop.PropertyType;
 
@@ -124,7 +124,7 @@ namespace Versioning
             return versionInformationData;
         }
 
-        private static SubVersionInformationData GetPropertyVersionData(PropertyInfo propertyInfo, VersionTypeEnum valueType)
+        private static SubVersionInformationData GetPropertyVersionData(PropertyInfo propertyInfo, VersionValueTypeEnum valueType)
         {
             SubVersionInformationData returnVal = new SubVersionInformationData()
             {

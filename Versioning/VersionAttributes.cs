@@ -11,7 +11,7 @@
         }
     }
 
-    public enum VersionTypeEnum : byte
+    public enum VersionValueTypeEnum : byte
     {
         BYTE,
         SBYTE,
@@ -19,8 +19,8 @@
         CHAR,
         SHORT,
         USHORT,
-        UINT,
         INT,
+        UINT,
         LONG,
         ULONG,
         DECIMAL,
@@ -34,9 +34,9 @@
     //Add this to the property which u want to save its data other wise it wont be saved by code.
     public sealed class VersionPropertyAttribute : Attribute
     {
-        public VersionTypeEnum TypeEnum { get; set; }
+        public VersionValueTypeEnum TypeEnum { get; set; }
 
-        public VersionPropertyAttribute(VersionTypeEnum typeEnum)
+        public VersionPropertyAttribute(VersionValueTypeEnum typeEnum)
         {
             TypeEnum = typeEnum;
         }

@@ -26,6 +26,6 @@ namespace Versioning
         public string? PropertyClassFullName;
         public bool IsList;
         public bool IsArray;
-        public VersionTypeEnum ValueType;
+        public VersionValueTypeEnum ValueType;
     }
 }
