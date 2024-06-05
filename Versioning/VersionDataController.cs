@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
-using System.Xml;
 using System.Xml.Serialization;
 
 namespace Versioning
@@ -12,11 +11,25 @@ namespace Versioning
         /// </summary>
         public static string VersionDataDirectory = "Versions";
 
-        private static List<VersionData> VersionsDataList;
+        private static Dictionary<ushort, VersionData> VersionsDataList;
+
+        /// <summary>
+        /// Try get wanted data
+        /// </summary>
+        /// <param name="version">Wanted version data value</param>
+        /// <returns>if version number exist in the data returns it else returns null</returns>
+        public static VersionData? GetVersionData(ushort version)
+        {
+            if (VersionsDataList == null)
+                LoadVersions();
+
+           VersionsDataList.TryGetValue(version, out VersionData? versionData);
+
+            return versionData;
+        }
 
         #region Save
-        private static VersionData CurrentVersionData;
-
+        private static VersionData currentVersionData;
         /// <summary>
         /// Save class property which has VersionClassAttribute with a VersionPropertyAttribute.
         /// </summary>
@@ -24,7 +37,7 @@ namespace Versioning
         {
             if (VersionsDataList == null) { LoadVersions(); }
 
-            if (ifExistsDontSave && VersionsDataList.Exists(s => s.VersionNumber == VersionManager.VersionNumber))
+            if (ifExistsDontSave && VersionsDataList.ContainsKey(VersionManager.VersionNumber))
             {
                 return;
             }
@@ -35,7 +48,7 @@ namespace Versioning
 
             string filePath = Path.Combine(path, $"Version-{VersionManager.VersionNumber}.xml");
 
-            CurrentVersionData = new VersionData()
+            currentVersionData = new VersionData()
             {
                 VersionNumber = VersionManager.VersionNumber,
                 VersionClasses = new List<VersionInformationData>(),
@@ -63,11 +76,11 @@ namespace Versioning
             {
                 //Get class save properties if any of them is an object get its properties also as new class
                 var versionClass = GetClassVersion(type);
-                CurrentVersionData.VersionClasses.Add(versionClass);
+                currentVersionData.VersionClasses.Add(versionClass);
             }
 
             //You can use your encryption to save version class.
-            var xml = SerializeToXML(CurrentVersionData);
+            var xml = SerializeToXML(currentVersionData);
             File.WriteAllText(filePath, xml);
         }
 
@@ -92,7 +105,7 @@ namespace Versioning
                     var attribute = (VersionPropertyAttribute)attributes[0];
 
                     //Control if it is already exists
-                    if (CurrentVersionData.VersionClasses.Exists(s => s.ClassFullName == prop.PropertyType.FullName))
+                    if (currentVersionData.VersionClasses.Exists(s => s.ClassFullName == prop.PropertyType.FullName))
                         continue;
 
                     versionInformationData.Properties.Add(GetPropertyVersionData(prop, attribute.TypeEnum));
@@ -113,9 +126,9 @@ namespace Versioning
                         }
 
                         //Control if it is already exists if not add
-                        if (objClassType != null && !CurrentVersionData.VersionClasses.Exists(s => s.ClassFullName == objClassType.FullName))
+                        if (objClassType != null && !currentVersionData.VersionClasses.Exists(s => s.ClassFullName == objClassType.FullName))
                         {
-                            CurrentVersionData.VersionClasses.Add(GetClassVersion(objClassType));
+                            currentVersionData.VersionClasses.Add(GetClassVersion(objClassType));
                         }
                     }
                 }
@@ -161,7 +174,7 @@ namespace Versioning
         public static void LoadVersions()
         {
             VersionsDataList?.Clear();
-            VersionsDataList = new List<VersionData>();
+            VersionsDataList = new Dictionary<ushort, VersionData>();
 
             ushort versionNumber = VersionManager.VersionNumber;
 
@@ -170,7 +183,7 @@ namespace Versioning
             if (!Directory.Exists(directory))
                 return;
 
-            while(versionNumber > 0)
+            while (versionNumber > 0)
             {
                 string filePath = Path.Combine(directory, $"Version-{versionNumber}.xml");
                 versionNumber--;
@@ -181,8 +194,8 @@ namespace Versioning
                 //If you encrypted be sure deserialize decrypted data
                 VersionData? versionData = DeserializeFromXML<VersionData>(File.ReadAllText(filePath));
 
-                if(versionData != null)
-                    VersionsDataList.Add(versionData);
+                if (versionData != null)
+                    VersionsDataList.Add(versionNumber, versionData);
             }
         }
         #endregion
