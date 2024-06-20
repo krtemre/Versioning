@@ -10,9 +10,9 @@ namespace VersioningUsageTest.Classes
 
         public int NonVersionIntData { get; set; }
 
-
-        [VersionPropertyAttribute(VersionValueTypeEnum.FLOAT)]
-        public float VersionFloatData { get; set; }
+        //Version 1
+        //[VersionPropertyAttribute(VersionValueTypeEnum.FLOAT)]
+        //public float VersionFloatData { get; set; }
 
         [VersionPropertyAttribute(VersionValueTypeEnum.OBJECT)]
         public TestClassB VersionBData { get; set; }

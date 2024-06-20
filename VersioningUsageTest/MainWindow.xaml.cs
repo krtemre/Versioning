@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using Versioning;
 using VersioningUsageTest.Classes;
 using VersioningUsageTest.SaveLoad;
 
@@ -17,27 +18,41 @@ namespace VersioningUsageTest
         {
             InitializeComponent();
 
+            VersionDataController.SaveVersion();
+
+            //Version 1
+            //TestClassA saveObjectA = new TestClassA()
+            //{
+            //    VersionIntData = 2,
+            //    NonVersionIntData = 1,
+            //    VersionFloatData = 12f,
+            //    VersionBData = new TestClassB()
+            //    {
+            //        VersionBoolData = true,
+            //        VersionByteData = 2,
+            //        VersionIntArrData = new int[] { 1, 2, 3 },
+            //    },
+            //};
+
             TestClassA saveObjectA = new TestClassA()
             {
                 VersionIntData = 2,
                 NonVersionIntData = 1,
-                VersionFloatData = 12f,
+                //VersionFloatData = 12f,
                 VersionBData = new TestClassB()
                 {
                     VersionBoolData = true,
-                    VersionByteData = 2,
+                    //VersionByteData = 2,
                     VersionIntArrData = new int[] { 1, 2, 3 },
                 },
             };
 
-            ByteSave.SaveObject(saveObjectA, fileLoc);
-            Debug.WriteLine("Object Saved");
+            //ByteSave.SaveObject(saveObjectA, fileLoc);
+            //Debug.WriteLine("Object Saved");
 
             TestClassA loadedObjectA = new TestClassA();
 
             ByteLoad.LoadObject(loadedObjectA, fileLoc);
-            Debug.WriteLine("Object Loaded");
-            Console.WriteLine();
         }
     }
 }

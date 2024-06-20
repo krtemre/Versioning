@@ -388,14 +388,14 @@ namespace VersioningUsageTest.SaveLoad
                 }
                 else
                 {
-                    SetObjectPropertyFromVersion(instance, data, ref index, property, subVersionInfo, true);
+                    SetObjectPropertyFromVersion(instance, data, ref index, property, subVersionInfo, true, version);
                 }
             }
 
             return instance;
         }
 
-        public static object? SetObjectPropertyFromVersion(object instance, byte[] data, ref int index, PropertyInfo property, SubVersionInformationData subVersionInformation, bool fromProperty)
+        public static object? SetObjectPropertyFromVersion(object instance, byte[] data, ref int index, PropertyInfo property, SubVersionInformationData subVersionInformation, bool fromProperty, ushort version)
         {
             object? returnVal = null;
 
@@ -420,7 +420,7 @@ namespace VersioningUsageTest.SaveLoad
                             val = Activator.CreateInstance(listElementType);
 
                         ((IList)list).Add(val);
-                        var obj = SetObjectPropertyFromVersion(((IList)list)[i], data, ref index, property, subVersionInformation, fromProperty);
+                        var obj = SetObjectPropertyFromVersion(((IList)list)[i], data, ref index, property, subVersionInformation, false, version);
                         if(obj != null)
                             ((IList)list)[i] = obj;
                     }
@@ -429,7 +429,7 @@ namespace VersioningUsageTest.SaveLoad
                 else if(subVersionInformation.IsArray) 
                 {
                     var listType = typeof(List<>);
-                    Type listElementType = property.PropertyType.GetGenericArguments().Single();
+                    Type listElementType = property.PropertyType.GetElementType();
                     var constructedList = listType.MakeGenericType(listElementType);
                     object list = Activator.CreateInstance(constructedList);
 
@@ -445,24 +445,183 @@ namespace VersioningUsageTest.SaveLoad
                             val = Activator.CreateInstance(listElementType);
 
                         ((IList)list).Add(val);
-                        var obj = SetObjectPropertyFromVersion(((IList)list)[i], data, ref index, property, subVersionInformation, fromProperty);
+                        var obj = SetObjectPropertyFromVersion(((IList)list)[i], data, ref index, property, subVersionInformation, false, version);
                         if (obj != null)
                             ((IList)list)[i] = obj;
                     }
 
-                    Array array = Array.CreateInstance(listType, length);
+                    Array array = Array.CreateInstance(listElementType, length);
                     for (int i = 0; i < length; i++ )
                         array.SetValue(((IList)list)[i], i);
                     property.SetValue(instance, array);
                 }
                 else
                 {
+                    switch (subVersionInformation.ValueType)
+                    {
+                        case VersionValueTypeEnum.BYTE:
+                            property.SetValue(instance, data[index]);
+                            index++;
+                            break;
+                        case VersionValueTypeEnum.SBYTE:
+                            property.SetValue(instance, (sbyte)data[index]);
+                            index++;
+                            break;
+                        case VersionValueTypeEnum.BOOL:
+                            property.SetValue(instance, ParserConverter.GetBool(data[index]));
+                            index++;
+                            break;
+                        case VersionValueTypeEnum.CHAR:
+                            property.SetValue(instance, ParserConverter.GetChar(data[index]));
+                            index++;
+                            break;
+                        case VersionValueTypeEnum.SHORT:
+                            property.SetValue(instance, ParserConverter.GetShort(ParserConverter.SubArray(data, index, 2)));
+                            index += 2;
+                            break;
+                        case VersionValueTypeEnum.USHORT:
+                            property.SetValue(instance, ParserConverter.GetUShort(ParserConverter.SubArray(data, index, 2)));
+                            index += 2;
+                            break;
+                        case VersionValueTypeEnum.INT:
+                            property.SetValue(instance, ParserConverter.GetInt(ParserConverter.SubArray(data, index, 4)));
+                            index += 4;
+                            break;
+                        case VersionValueTypeEnum.UINT:
+                            property.SetValue(instance, ParserConverter.GetUInt(ParserConverter.SubArray(data, index, 4)));
+                            index += 4;
+                            break;
+                        case VersionValueTypeEnum.LONG:
+                            property.SetValue(instance, ParserConverter.GetLong(ParserConverter.SubArray(data, index, 8)));
+                            index += 8;
+                            break;
+                        case VersionValueTypeEnum.ULONG:
+                            property.SetValue(instance, ParserConverter.GetULong(ParserConverter.SubArray(data, index, 8)));
+                            index += 8;
+                            break;
+                        case VersionValueTypeEnum.DECIMAL:
+                            property.SetValue(instance, ParserConverter.GetDecimal(ParserConverter.SubArray(data, index, 16)));
+                            index += 16;
+                            break;
+                        case VersionValueTypeEnum.FLOAT:
+                            property.SetValue(instance, ParserConverter.GetFloat(ParserConverter.SubArray(data, index, 4)));
+                            index += 4;
+                            break;
+                        case VersionValueTypeEnum.DOUBLE:
+                            property.SetValue(instance, ParserConverter.GetDouble(ParserConverter.SubArray(data, index, 8)));
+                            index += 8;
+                            break;
+                        case VersionValueTypeEnum.STRING:
+                            int length = ParserConverter.GetInt(ParserConverter.SubArray(data, index, 4));
+                            index += 4;
 
+                            property.SetValue(instance, ParserConverter.GetString(ParserConverter.SubArray(data, index, length)));
+                            index += length;
+                            break;
+                        case VersionValueTypeEnum.DATETIME:
+                            property.SetValue(instance, ParserConverter.GetDateTime(ParserConverter.SubArray(data, index, 8)));
+                            index += 8;
+                            break;
+                        case VersionValueTypeEnum.OBJECT:
+                            bool hasData = ParserConverter.GetBool(data[index]);
+                            index++;
+
+                            if (hasData)
+                            {
+                                if (property.GetValue(instance, null) != null)
+                                {
+                                    property.SetValue(instance, GetVersionedObject(property.GetValue(instance, null), data, ref index, version));
+                                }
+                                else
+                                {
+                                    property.SetValue(instance, GetVersionedObject(Activator.CreateInstance(property.PropertyType), data, ref index, version));
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             else
             {
+                switch (subVersionInformation.ValueType)
+                {
+                    case VersionValueTypeEnum.BYTE:
+                        returnVal = data[index];
+                        index++;
+                        break;
+                    case VersionValueTypeEnum.SBYTE:
+                        returnVal = (sbyte)data[index];
+                        index++;
+                        break;
+                    case VersionValueTypeEnum.BOOL:
+                        returnVal = ParserConverter.GetBool(data[index]);
+                        index++;
+                        break;
+                    case VersionValueTypeEnum.CHAR:
+                        returnVal = ParserConverter.GetChar(data[index]);
+                        index++;
+                        break;
+                    case VersionValueTypeEnum.SHORT:
+                        returnVal = ParserConverter.GetShort(ParserConverter.SubArray(data, index, 2));
+                        index += 2;
+                        break;
+                    case VersionValueTypeEnum.USHORT:
+                        returnVal = ParserConverter.GetUShort(ParserConverter.SubArray(data, index, 2));
+                        index += 2;
+                        break;
+                    case VersionValueTypeEnum.INT:
+                        returnVal = ParserConverter.GetInt(ParserConverter.SubArray(data, index, 4));
+                        index += 4;
+                        break;
+                    case VersionValueTypeEnum.UINT:
+                        returnVal = ParserConverter.GetUInt(ParserConverter.SubArray(data, index, 4));
+                        index += 4;
+                        break;
+                    case VersionValueTypeEnum.LONG:
+                        returnVal = ParserConverter.GetLong(ParserConverter.SubArray(data, index, 8));
+                        index += 8;
+                        break;
+                    case VersionValueTypeEnum.ULONG:
+                        returnVal = ParserConverter.GetULong(ParserConverter.SubArray(data, index, 8));
+                        index += 8;
+                        break;
+                    case VersionValueTypeEnum.DECIMAL:
+                        returnVal = ParserConverter.GetDecimal(ParserConverter.SubArray(data, index, 16));
+                        index += 16;
+                        break;
+                    case VersionValueTypeEnum.FLOAT:
+                        returnVal = ParserConverter.GetFloat(ParserConverter.SubArray(data, index, 4));
+                        index += 4;
+                        break;
+                    case VersionValueTypeEnum.DOUBLE:
+                        returnVal = ParserConverter.GetDouble(ParserConverter.SubArray(data, index, 8));
+                        index += 8;
+                        break;
+                    case VersionValueTypeEnum.STRING:
+                        int length = ParserConverter.GetInt(ParserConverter.SubArray(data, index, 4));
+                        index += 4;
 
+                        returnVal = ParserConverter.GetString(ParserConverter.SubArray(data, index, length));
+                        index += length;
+                        break;
+                    case VersionValueTypeEnum.DATETIME:
+                        returnVal = ParserConverter.GetDateTime(ParserConverter.SubArray(data, index, 8));
+                        index += 8;
+                        break;
+                    case VersionValueTypeEnum.OBJECT:
+                        bool hasData = ParserConverter.GetBool(data[index]);
+                        index++;
+
+                        if (hasData)
+                        {
+                            returnVal = GetObject(instance, data, ref index);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
 
             return returnVal;

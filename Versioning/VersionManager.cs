@@ -8,6 +8,6 @@ namespace Versioning
 {
     public static class VersionManager
     {
-        public const ushort VersionNumber = 1;
+        public const ushort VersionNumber = 2;
     }
 }

@@ -7,8 +7,9 @@ namespace VersioningUsageTest.Classes
         [VersionProperty(VersionValueTypeEnum.BOOL)]
         public bool VersionBoolData { get; set; }
 
-        [VersionProperty(VersionValueTypeEnum.BYTE)]
-        public byte VersionByteData { get; set; }
+        //Version 1
+        //[VersionProperty(VersionValueTypeEnum.BYTE)]
+        //public byte VersionByteData { get; set; }
 
         [VersionProperty(VersionValueTypeEnum.INT)]
         public int[] VersionIntArrData { get; set; }

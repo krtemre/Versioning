@@ -186,7 +186,6 @@ namespace Versioning
             while (versionNumber > 0)
             {
                 string filePath = Path.Combine(directory, $"Version-{versionNumber}.xml");
-                versionNumber--;
 
                 if (!File.Exists(filePath))
                     continue;
@@ -196,6 +195,7 @@ namespace Versioning
 
                 if (versionData != null)
                     VersionsDataList.Add(versionNumber, versionData);
+                versionNumber--;
             }
         }
         #endregion
